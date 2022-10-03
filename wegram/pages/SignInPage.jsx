@@ -1,15 +1,71 @@
-import React from 'react';
-import { StyleSheet, ImageBackground } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, ImageBackground, Alert } from 'react-native';
 import { Container, Content, Text, Form, Button } from 'native-base';
 const bImage = require('../assets/background.png');
 import ItemInput from '../components/ItemInput';
+import { signIn } from '../config/firebaseFunction';
+import Loading from '../pages/Loading';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function SignInPage({ navigation }) {
+export default function SignInPage({ navigation, authState }) {
+  const [ready, setReady] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  useEffect(() => {
+    navigation.addListener('beforeRemove', (e) => {
+      e.preventDefault(); //뒤로가기를 막는 함수
+    });
+
+    setTimeout(() => {
+      AsyncStorage.getItem('session', (err, result) => {
+        console.log('Async Storage');
+        console.log(result);
+        if (result) {
+          navigation.push('TabNavigator');
+        } else {
+          setReady(true);
+        }
+      });
+      setReady(true);
+    }, 1000);
+  }, []);
+
+  const doSignIn = () => {
+    //Email 로그인 버튼을 누를 때 실행되는 함수
+    if (email == '') {
+      setEmailError('이메일을 입력해주세요');
+      return false;
+    } else {
+      setEmailError('');
+    }
+
+    if (password == '') {
+      setPasswordError('비밀번호를 입력해주세요');
+      return false;
+    } else {
+      setPasswordError('');
+    }
+
+    signIn(email, password, navigation);
+  };
+  const setEmailFunc = (itemInputEmail) => {
+    //이메일 상태값을 관리하는 함수
+    setEmail(itemInputEmail);
+  };
+  const setPasswordFunc = (itemInputPassword) => {
+    //패스워드 상태값을 관리하는 함수
+    setPassword(itemInputPassword);
+  };
+
   const goSignUp = () => {
     navigation.navigate('SignUpPage');
   };
 
-  return (
+  return ready ? (
     <Container style={styles.container}>
       <ImageBackground source={bImage} style={styles.backgroundImage}>
         <Content contentContainerStyle={styles.content} scrollEnabled={false}>
@@ -17,13 +73,23 @@ export default function SignInPage({ navigation }) {
             <Text style={styles.highlite}>we</Text>gram
           </Text>
           <Form style={styles.form}>
-            <ItemInput title={'이메일'} />
-            <ItemInput title={'비밀번호'} />
+            <ItemInput
+              title={'이메일'}
+              type={'email'}
+              setFunc={setEmailFunc}
+              error={emailError}
+            />
+            <ItemInput
+              title={'비밀번호'}
+              type={'password'}
+              setFunc={setPasswordFunc}
+              error={passwordError}
+            />
           </Form>
           {/* <Button full style={styles.snsSignUp}>
             <Text>Facebook 로그인</Text>
           </Button> */}
-          <Button full style={styles.emailSignIn}>
+          <Button full style={styles.emailSignIn} onPress={doSignIn}>
             <Text>Email 로그인</Text>
           </Button>
           <Button full style={styles.emailSignUp} onPress={goSignUp}>
@@ -32,6 +98,8 @@ export default function SignInPage({ navigation }) {
         </Content>
       </ImageBackground>
     </Container>
+  ) : (
+    <Loading />
   );
 }
 

@@ -5,10 +5,15 @@ import { Container, Content, Text, Thumbnail } from 'native-base';
 import ImageComponent from '../components/ImageComponent';
 import HeaderComponent from '../components/HeaderComponent';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { signOut } from '../config/firebaseFunction';
+
 const my = require('../assets/my.png');
 const data = require('../data.json');
 
-export default function MyPage() {
+export default function MyPage({ navigation }) {
+  const doSignOut = () => {
+    signOut(navigation);
+  };
   return (
     <Container>
       <HeaderComponent />
@@ -16,7 +21,7 @@ export default function MyPage() {
         <Thumbnail large source={my} style={styles.thumbnail} />
         <Text style={styles.myTitle}>스파르타코딩 클럽</Text>
         <Text style={{ alignSelf: 'center' }}>gunhee@spartacoding.co.kr</Text>
-        <TouchableOpacity style={{ marginTop: 20 }}>
+        <TouchableOpacity style={{ marginTop: 20 }} onPress={doSignOut}>
           <Text style={styles.logout}>로그아웃</Text>
         </TouchableOpacity>
         <Grid style={{ marginTop: 30 }}>
